@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>nyolong html</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            background-color: #000;
+            color: #fff;
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 10;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 100, 255, 0.5);
+            margin-top: 30px;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #4af;
+            text-shadow: 0 0 10px rgba(100, 200, 255, 0.7);
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            display: flex;
+            margin-bottom: 20px;
+        }
+
+        input[type="url"] {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #4af;
+            border-radius: 5px 0 0 5px;
+            background-color: rgba(0, 20, 40, 0.8);
+            color: #fff;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 12px 20px;
+            background-color: #4af;
+            color: white;
+            border: none;
+            border-radius: 0 5px 5px 0;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background-color: #6cf;
+            box-shadow: 0 0 15px rgba(100, 200, 255, 0.7);
+        }
+
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            border: 1px solid #4af;
+            border-radius: 5px;
+            background-color: rgba(0, 10, 20, 0.8);
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            color: #ccc;
+        }
+
+        /* Efek Petir */
+        .lightning {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .lightning:before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(0, 50, 100, 0.2), rgba(0, 100, 200, 0.1));
+            opacity: 0;
+            animation: lightning 8s linear infinite;
+        }
+
+        @keyframes lightning {
+            0% { opacity: 0; }
+            2% { opacity: 0.3; }
+            4% { opacity: 0; }
+            50% { opacity: 0; }
+            52% { opacity: 0.4; }
+            54% { opacity: 0; }
+            56% { opacity: 0.2; }
+            58% { opacity: 0; }
+            100% { opacity: 0; }
+        }
+
+        /* Efek kilat tambahan */
+        .flash {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            opacity: 0;
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            color: #4af;
+            font-size: 14px;
+        }
+
+        .warning {
+            color: #f44;
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="lightning"></div>
+    <div class="flash" id="flash"></div>
+
+    <div class="container">
+        <h1>HTML Nyuri</h1>
+        
+        <p class="warning">PERINGATAN: Pengambilan konten dari website lain mungkin melanggar kebijakan penggunaan atau hukum setempat. Gunakan dengan tanggung jawab.</p>
+        
+        <div class="input-group">
+            <input type="url" id="urlInput" placeholder="Masukkan URL (contoh: https://example.com)" required>
+            <button onclick="fetchHTML()">Ambil HTML</button>
+        </div>
+        
+        <div class="result" id="result">
+            <p>Hasil HTML akan muncul di sini...</p>
+        </div>
+        
+        <footer>
+            Website Pengambil HTML &copy; 2023
+        </footer>
+    </div>
+
+    <script>
+        // Fungsi untuk mengambil HTML
+        async function fetchHTML() {
+            const url = document.getElementById('urlInput').value.trim();
+            const resultDiv = document.getElementById('result');
+            
+            if (!url) {
+                resultDiv.innerHTML = '<p style="color: #f44;">Silakan masukkan URL yang valid</p>';
+                return;
+            }
+            
+            try {
+                // Tambahkan efek flash
+                triggerFlash();
+                
+                // Tambahkan https:// jika tidak ada
+                let fetchUrl = url;
+                if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                    fetchUrl = 'https://' + url;
+                }
+                
+                resultDiv.innerHTML = '<p>Mengambil HTML dari ' + fetchUrl + '...</p>';
+                
+                // Gunakan proxy CORS untuk menghindari masalah CORS
+                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(fetchUrl)}`;
+                
+                const response = await fetch(proxyUrl);
+                const data = await response.json();
+                
+                if (data.contents) {
+                    resultDiv.innerHTML = '<pre>' + escapeHTML(data.contents) + '</pre>';
+                } else {
+                    resultDiv.innerHTML = '<p style="color: #f44;">Gagal mengambil HTML. Error: ' + (data.error || 'Tidak diketahui') + '</p>';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = '<p style="color: #f44;">Error: ' + error.message + '</p>';
+            }
+        }
+        
+        // Fungsi untuk escape HTML
+        function escapeHTML(html) {
+            return html.replace(/&/g, "&amp;")
+                       .replace(/</g, "&lt;")
+                       .replace(/>/g, "&gt;")
+                       .replace(/"/g, "&quot;")
+                       .replace(/'/g, "&#039;");
+        }
+        
+        // Fungsi untuk efek flash petir
+        function triggerFlash() {
+            const flash = document.getElementById('flash');
+            flash.style.opacity = '0.7';
+            flash.style.transition = 'opacity 0.1s';
+            
+            setTimeout(() => {
+                flash.style.opacity = '0';
+                flash.style.transition = 'opacity 0.5s';
+            }, 100);
+            
+            // Random lightning timing
+            setTimeout(() => {
+                flash.style.opacity = '0.4';
+                flash.style.transition = 'opacity 0.05s';
+                
+                setTimeout(() => {
+                    flash.style.opacity = '0';
+                    flash.style.transition = 'opacity 0.3s';
+                }, 50);
+            }, Math.random() * 300 + 100);
+        }
+        
+        // Efek petir acak
+        setInterval(() => {
+            if (Math.random() > 0.7) {
+                triggerFlash();
+            }
+        }, 8000);
+    </script>
+</body>
+</html>
